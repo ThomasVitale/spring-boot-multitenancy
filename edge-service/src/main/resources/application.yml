@@ -17,7 +17,7 @@ spring:
             - Host={segment}.rock
             - Path=/instruments/**
           filters:
-            - Tenant=X-TenantId,{segment}
+            - AddRequestHeader=X-TenantId,{segment}
 
 logging:
   pattern:

@@ -9,7 +9,6 @@ import org.springframework.security.web.server.ServerRedirectStrategy;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ServerWebExchange;
-import org.springframework.web.util.UriComponentsBuilder;
 
 @RestController
 public class LoginController {
