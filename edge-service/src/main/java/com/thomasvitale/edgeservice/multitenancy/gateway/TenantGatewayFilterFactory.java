@@ -14,6 +14,10 @@ import org.springframework.web.server.ServerWebExchange;
 
 import static org.springframework.cloud.gateway.support.GatewayToStringStyler.filterToStringCreator;
 
+/**
+ * Custom filter to extend the AddRequestHeader built-in filter so to
+ * also include tenant information into the ObservabilityContext.
+ */
 @Component
 public class TenantGatewayFilterFactory extends AbstractNameValueGatewayFilterFactory {
 
