@@ -1,0 +1,63 @@
+server:
+  port: 80
+
+spring:
+  application:
+    name: edge-service
+  
+  cloud:
+    gateway:
+      default-filters:
+        - SaveSession
+        - TokenRelay
+      routes:
+        - id: instrument-route
+          uri: ${INSTRUMENT_SERVICE_URL:http://localhost:8181}
+          predicates:
+            - Host={segment}.rock
+            - Path=/instruments/**
+          filters:
+            - AddRequestHeader=X-TenantId,{segment}
+
+logging:
+  pattern:
+    level: "%5p [${spring.application.name:},%X{traceId:-},%X{spanId:-}] tenantId=%X{tenantId:-}"
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*"
+  metrics:
+    tags:
+      application: ${spring.application.name}
+    distribution:
+      percentiles-histogram:
+        all: true
+        http.server.requests: true
+  tracing:
+    sampling:
+      probability: 1.0
+  prometheus:
+    metrics:
+      export:
+        step: 10s
+  info:
+    env:
+      enabled: true
+    java:
+      enabled: true
+    os:
+      enabled: true
+  endpoint:
+    health:
+      probes:
+        enabled: true
+      show-details: always
+      show-components: always
+
+tenant:
+  security:
+    client-id: edge-service
+    client-secret: rocking-secret
+    issuer-base-uri: http://localhost:8080/realms/
