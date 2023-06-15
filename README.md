@@ -2,7 +2,7 @@
 
 ## Stack
 
-* Java 17
+* Java 20
 * Spring Boot 3.1
 * Grafana OSS
 
