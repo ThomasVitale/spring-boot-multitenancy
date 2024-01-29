@@ -43,7 +43,15 @@ management:
       show-components: always
 
 multitenancy:
-  http:
-    header-name: X-TenantId
   security:
     issuer-base-uri: http://localhost:8080/realms/
+  tenants:
+    - identifier: dukes
+      schema: DUKES
+      enabled: true
+    - identifier: beans
+      schema: BEANS
+      enabled: true
+    - identifier: trixie
+      schema: TRIXIE
+      enabled: false

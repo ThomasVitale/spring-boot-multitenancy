@@ -1,4 +1,4 @@
-package com.thomasvitale.instrumentservice.multitenancy;
+package com.thomasvitale.instrumentservice.multitenancy.security;
 
 import java.net.URI;
 

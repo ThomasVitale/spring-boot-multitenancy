@@ -3,7 +3,6 @@ package com.thomasvitale.instrumentservice.multitenancy.security;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-import com.thomasvitale.instrumentservice.multitenancy.TenantSecurityProperties;
 import com.thomasvitale.instrumentservice.multitenancy.context.TenantContextHolder;
 import jakarta.servlet.http.HttpServletRequest;
 

@@ -6,23 +6,29 @@ import java.util.Map;
 
 import javax.sql.DataSource;
 
+import com.thomasvitale.instrumentservice.multitenancy.tenantdetails.TenantDetailsService;
+
 import org.hibernate.cfg.AvailableSettings;
 import org.hibernate.engine.jdbc.connections.spi.MultiTenantConnectionProvider;
 import org.springframework.boot.autoconfigure.orm.jpa.HibernatePropertiesCustomizer;
 import org.springframework.stereotype.Component;
 
+import static com.thomasvitale.instrumentservice.multitenancy.data.hibernate.TenantIdentifierResolver.DEFAULT_SCHEMA;
+
 @Component
 public class ConnectionProvider implements MultiTenantConnectionProvider<String>, HibernatePropertiesCustomizer {
 
   	private final DataSource dataSource;
+    private final TenantDetailsService tenantDetailsService;
 
-	ConnectionProvider(DataSource dataSource) {
+	ConnectionProvider(DataSource dataSource, TenantDetailsService tenantDetailsService) {
 		this.dataSource = dataSource;
-	}
+        this.tenantDetailsService = tenantDetailsService;
+    }
 
 	@Override
 	public Connection getAnyConnection() throws SQLException {
-		return getConnection("PUBLIC");
+		return getConnection(DEFAULT_SCHEMA);
 	}
 
 	@Override
@@ -32,14 +38,14 @@ public class ConnectionProvider implements MultiTenantConnectionProvider<String>
 
 	@Override
 	public Connection getConnection(String tenantIdentifier) throws SQLException {
-		final Connection connection = dataSource.getConnection();
-		connection.setSchema(tenantIdentifier);
+		Connection connection = dataSource.getConnection();
+		connection.setSchema(tenantDetailsService.loadTenantByIdentifier(tenantIdentifier).schema());
 		return connection;
 	}
 
 	@Override
 	public void releaseConnection(String tenantIdentifier, Connection connection) throws SQLException {
-    	connection.setSchema("PUBLIC");
+    	connection.setSchema(DEFAULT_SCHEMA);
 		connection.close();
   	}
 

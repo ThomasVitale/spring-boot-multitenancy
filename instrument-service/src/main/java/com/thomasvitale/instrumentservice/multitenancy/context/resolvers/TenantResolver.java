@@ -1,4 +1,4 @@
-package com.thomasvitale.instrumentservice.multitenancy.resolver;
+package com.thomasvitale.instrumentservice.multitenancy.context.resolvers;
 
 import org.springframework.lang.NonNull;
 import org.springframework.lang.Nullable;

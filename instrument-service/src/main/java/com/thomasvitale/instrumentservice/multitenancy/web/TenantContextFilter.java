@@ -8,7 +8,9 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
 import com.thomasvitale.instrumentservice.multitenancy.context.TenantContextHolder;
-import com.thomasvitale.instrumentservice.multitenancy.resolver.HttpHeaderTenantResolver;
+import com.thomasvitale.instrumentservice.multitenancy.context.resolvers.HttpHeaderTenantResolver;
+import com.thomasvitale.instrumentservice.multitenancy.exceptions.TenantNotFoundException;
+import com.thomasvitale.instrumentservice.multitenancy.tenantdetails.TenantDetailsService;
 
 import io.micrometer.common.KeyValue;
 
@@ -25,15 +27,21 @@ import org.springframework.web.filter.ServerHttpObservationFilter;
 public class TenantContextFilter extends OncePerRequestFilter {
 
 	private final HttpHeaderTenantResolver httpRequestTenantResolver;
+    private final TenantDetailsService tenantDetailsService;
 
-	public TenantContextFilter(HttpHeaderTenantResolver httpHeaderTenantResolver) {
+	public TenantContextFilter(HttpHeaderTenantResolver httpHeaderTenantResolver, TenantDetailsService tenantDetailsService) {
 		this.httpRequestTenantResolver = httpHeaderTenantResolver;
-	}
+        this.tenantDetailsService = tenantDetailsService;
+    }
 
 	@Override
 	protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
         var tenantIdentifier = httpRequestTenantResolver.resolveTenantIdentifier(request);
+
         if (StringUtils.hasText(tenantIdentifier)) {
+            if (!isTenantValid(tenantIdentifier)) {
+                throw new TenantNotFoundException();
+            }
             TenantContextHolder.setTenantIdentifier(tenantIdentifier);
             configureLogs(tenantIdentifier);
             configureTraces(tenantIdentifier, request);
@@ -45,6 +53,11 @@ public class TenantContextFilter extends OncePerRequestFilter {
             clear();
         }
 	}
+
+    private boolean isTenantValid(String tenantIdentifier) {
+        var tenantDetails = tenantDetailsService.loadTenantByIdentifier(tenantIdentifier);
+        return tenantDetails.enabled();
+    }
 
 	private void configureLogs(String tenantId) {
 		MDC.put("tenantId", tenantId);
