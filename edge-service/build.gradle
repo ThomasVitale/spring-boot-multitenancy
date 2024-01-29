@@ -1,17 +1,18 @@
 plugins {
 	id 'java'
-	id 'org.springframework.boot' version '3.1.4'
-	id 'io.spring.dependency-management' version '1.1.3'
-	id 'org.cyclonedx.bom' version '1.7.4'
+	id 'org.springframework.boot' version '3.2.2'
+	id 'io.spring.dependency-management' version '1.1.4'
+	id 'org.cyclonedx.bom' version '1.8.2'
 }
 
 group = 'com.thomasvitale'
 version = '0.0.1-SNAPSHOT'
 
 java {
-	sourceCompatibility = '21'
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(21)
+    }
 }
-
 
 configurations {
 	compileOnly {
@@ -24,7 +25,7 @@ repositories {
 }
 
 ext {
-	set('springCloudVersion', "2022.0.4")
+	set('springCloudVersion', "2023.0.0")
 }
 
 dependencies {
@@ -38,7 +39,7 @@ dependencies {
 	developmentOnly 'org.springframework.boot:spring-boot-devtools'
 
 	runtimeOnly 'io.micrometer:micrometer-registry-prometheus'
-	runtimeOnly 'com.github.loki4j:loki-logback-appender:1.4.0'
+    runtimeOnly 'com.github.loki4j:loki-logback-appender:1.5.0-m1'
 
 	// Only on Apple Silicon. Why it's necessary: https://github.com/netty/netty/issues/11020
 	runtimeOnly 'io.netty:netty-resolver-dns-native-macos:4.1.91.Final:osx-aarch_64'
@@ -59,9 +60,8 @@ tasks.named('test') {
 	useJUnitPlatform()
 }
 
-tasks.cyclonedxBom {
-	projectType = "application"
-	//skipConfigs = ["testCompileClasspath"]
-	outputFormat = "json"
+tasks.named('cyclonedxBom') {
+    outputFormat = "json"
+    projectType = "application"
+    schemaVersion = "1.5"
 }
-tasks.assemble.finalizedBy 'cyclonedxBom'

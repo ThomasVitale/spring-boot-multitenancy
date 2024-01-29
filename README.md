@@ -3,7 +3,7 @@
 ## Stack
 
 * Java 21
-* Spring Boot 3.1
+* Spring Boot 3.2
 * Grafana OSS
 
 ## Usage

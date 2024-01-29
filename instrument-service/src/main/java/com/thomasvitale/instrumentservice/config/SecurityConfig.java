@@ -1,7 +1,8 @@
 package com.thomasvitale.instrumentservice.config;
 
-import com.thomasvitale.instrumentservice.multitenancy.security.TenantFilter;
 import jakarta.servlet.http.HttpServletRequest;
+
+import com.thomasvitale.instrumentservice.multitenancy.web.TenantContextFilter;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -17,14 +18,14 @@ public class SecurityConfig {
 	SecurityFilterChain securityFilterChain(
 			HttpSecurity http,
 			AuthenticationManagerResolver<HttpServletRequest> authenticationManagerResolver,
-			TenantFilter tenantFilter
+			TenantContextFilter tenantContextFilter
 	) throws Exception {
 		return http
 			.authorizeHttpRequests(request -> request
 				.requestMatchers("/actuator/**").permitAll()
 				.anyRequest().authenticated())
 			.oauth2ResourceServer(oauth2 -> oauth2.authenticationManagerResolver(authenticationManagerResolver))
-			.addFilterBefore(tenantFilter, BearerTokenAuthenticationFilter.class)
+			.addFilterBefore(tenantContextFilter, BearerTokenAuthenticationFilter.class)
 			.build();
 	}
 

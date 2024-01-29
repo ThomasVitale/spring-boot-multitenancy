@@ -4,7 +4,7 @@ import java.util.List;
 
 import com.thomasvitale.instrumentservice.instrument.Instrument;
 import com.thomasvitale.instrumentservice.instrument.InstrumentRepository;
-import com.thomasvitale.instrumentservice.multitenancy.context.TenantContext;
+import com.thomasvitale.instrumentservice.multitenancy.context.TenantContextHolder;
 
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.annotation.Configuration;
@@ -21,23 +21,23 @@ public class DataConfig {
 
 	@EventListener(ApplicationReadyEvent.class)
 	public void loadTestData() {
-		TenantContext.setTenantId("dukes");
+		TenantContextHolder.setTenantIdentifier("dukes");
 		if (instrumentRepository.count() == 0) {
 			var piano = new Instrument("Steinway", "piano");
 			var cello = new Instrument("Cello", "string");
 			var guitar = new Instrument("Gibson Firebird", "guitar");
 			instrumentRepository.saveAll(List.of(piano, cello, guitar));
 		}
-		TenantContext.clear();
+		TenantContextHolder.clear();
 
-		TenantContext.setTenantId("beans");
+		TenantContextHolder.setTenantIdentifier("beans");
 		if (instrumentRepository.count() == 0) {
 			var organ = new Instrument("Hammond B3", "organ");
 			var viola = new Instrument("Viola", "string");
 			var guitarFake = new Instrument("Gibson Firebird (Fake)", "guitar");
 			instrumentRepository.saveAll(List.of(organ, viola, guitarFake));
 		}
-		TenantContext.clear();
+		TenantContextHolder.clear();
 	}
 
 }

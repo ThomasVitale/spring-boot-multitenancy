@@ -1,41 +1,49 @@
-package com.thomasvitale.instrumentservice.multitenancy.security;
+package com.thomasvitale.instrumentservice.multitenancy.web;
 
 import java.io.IOException;
-import java.util.Optional;
 
-import com.thomasvitale.instrumentservice.multitenancy.context.TenantContext;
-import com.thomasvitale.instrumentservice.multitenancy.resolver.HttpHeaderTenantResolver;
-import io.micrometer.common.KeyValue;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import org.slf4j.MDC;
 
+import com.thomasvitale.instrumentservice.multitenancy.context.TenantContextHolder;
+import com.thomasvitale.instrumentservice.multitenancy.resolver.HttpHeaderTenantResolver;
+
+import io.micrometer.common.KeyValue;
+
+import org.slf4j.MDC;
 import org.springframework.stereotype.Component;
+import org.springframework.util.StringUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
 import org.springframework.web.filter.ServerHttpObservationFilter;
 
+/**
+ * Establish a tenant context from an HTTP request, if tenant information is available.
+ */
 @Component
-public class TenantFilter extends OncePerRequestFilter {
+public class TenantContextFilter extends OncePerRequestFilter {
 
 	private final HttpHeaderTenantResolver httpRequestTenantResolver;
 
-	public TenantFilter(HttpHeaderTenantResolver httpHeaderTenantResolver) {
+	public TenantContextFilter(HttpHeaderTenantResolver httpHeaderTenantResolver) {
 		this.httpRequestTenantResolver = httpHeaderTenantResolver;
 	}
 
 	@Override
 	protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
-		Optional.ofNullable(httpRequestTenantResolver.resolveTenantId(request)).ifPresent(tenantId -> {
-			TenantContext.setTenantId(tenantId);
-			configureLogs(tenantId);
-			configureTraces(tenantId, request);
-		});
+        var tenantIdentifier = httpRequestTenantResolver.resolveTenantIdentifier(request);
+        if (StringUtils.hasText(tenantIdentifier)) {
+            TenantContextHolder.setTenantIdentifier(tenantIdentifier);
+            configureLogs(tenantIdentifier);
+            configureTraces(tenantIdentifier, request);
+        }
 
-		filterChain.doFilter(request, response);
-
-		clear();
+        try {
+            filterChain.doFilter(request, response);
+        } finally {
+            clear();
+        }
 	}
 
 	private void configureLogs(String tenantId) {
@@ -49,7 +57,7 @@ public class TenantFilter extends OncePerRequestFilter {
 
 	private void clear() {
 		MDC.remove("tenantId");
-		TenantContext.clear();
+		TenantContextHolder.clear();
 	}
 
 }

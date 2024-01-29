@@ -8,12 +8,11 @@ import javax.sql.DataSource;
 
 import org.hibernate.cfg.AvailableSettings;
 import org.hibernate.engine.jdbc.connections.spi.MultiTenantConnectionProvider;
-
 import org.springframework.boot.autoconfigure.orm.jpa.HibernatePropertiesCustomizer;
 import org.springframework.stereotype.Component;
 
 @Component
-public class ConnectionProvider implements MultiTenantConnectionProvider, HibernatePropertiesCustomizer {
+public class ConnectionProvider implements MultiTenantConnectionProvider<String>, HibernatePropertiesCustomizer {
 
   	private final DataSource dataSource;
 
@@ -63,5 +62,5 @@ public class ConnectionProvider implements MultiTenantConnectionProvider, Hibern
 	public void customize(Map<String, Object> hibernateProperties) {
 		hibernateProperties.put(AvailableSettings.MULTI_TENANT_CONNECTION_PROVIDER, this);
 	}
-  
+
 }

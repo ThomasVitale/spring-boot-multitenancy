@@ -1,7 +1,7 @@
 services:
 
   keycloak:
-    image: quay.io/keycloak/keycloak:21.1
+    image: quay.io/keycloak/keycloak:23.0
     container_name: keycloak
     command: start-dev --import-realm
     volumes:

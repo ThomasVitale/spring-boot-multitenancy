@@ -4,7 +4,7 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 import com.thomasvitale.instrumentservice.multitenancy.TenantSecurityProperties;
-import com.thomasvitale.instrumentservice.multitenancy.context.TenantContext;
+import com.thomasvitale.instrumentservice.multitenancy.context.TenantContextHolder;
 import jakarta.servlet.http.HttpServletRequest;
 
 import org.springframework.security.authentication.AuthenticationManager;
@@ -25,7 +25,7 @@ public class TenantAuthenticationManagerResolver implements AuthenticationManage
 
 	@Override
 	public AuthenticationManager resolve(HttpServletRequest request) {
-		var tenantId = TenantContext.getTenantId();
+		var tenantId = TenantContextHolder.getRequiredTenantIdentifier();
 		return authenticationManagers.computeIfAbsent(tenantId, this::buildAuthenticationManager);
 	}
 
