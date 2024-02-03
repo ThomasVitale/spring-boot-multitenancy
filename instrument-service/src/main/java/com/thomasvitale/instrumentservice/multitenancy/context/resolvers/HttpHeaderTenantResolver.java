@@ -2,7 +2,6 @@ package com.thomasvitale.instrumentservice.multitenancy.context.resolvers;
 
 import jakarta.servlet.http.HttpServletRequest;
 
-import org.springframework.lang.NonNull;
 import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Component;
 
@@ -16,7 +15,7 @@ public class HttpHeaderTenantResolver implements TenantResolver<HttpServletReque
 
 	@Override
     @Nullable
-	public String resolveTenantIdentifier(@NonNull HttpServletRequest request) {
+	public String resolveTenantIdentifier(HttpServletRequest request) {
 		return request.getHeader(TENANT_HEADER);
 	}
 

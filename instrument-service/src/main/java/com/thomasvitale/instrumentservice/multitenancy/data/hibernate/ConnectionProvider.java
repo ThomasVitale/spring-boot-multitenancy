@@ -38,8 +38,11 @@ public class ConnectionProvider implements MultiTenantConnectionProvider<String>
 
 	@Override
 	public Connection getConnection(String tenantIdentifier) throws SQLException {
+        var tenantDetails = tenantDetailsService.loadTenantByIdentifier(tenantIdentifier);
+        var schema = tenantDetails != null ? tenantDetails.schema() : tenantIdentifier;
+
 		Connection connection = dataSource.getConnection();
-		connection.setSchema(tenantDetailsService.loadTenantByIdentifier(tenantIdentifier).schema());
+		connection.setSchema(schema);
 		return connection;
 	}
 

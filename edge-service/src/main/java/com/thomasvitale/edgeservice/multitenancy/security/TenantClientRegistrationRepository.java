@@ -3,7 +3,8 @@ package com.thomasvitale.edgeservice.multitenancy.security;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-import com.thomasvitale.edgeservice.multitenancy.TenantSecurityProperties;
+import com.thomasvitale.edgeservice.multitenancy.exceptions.TenantResolutionException;
+import com.thomasvitale.edgeservice.multitenancy.tenantdetails.TenantDetailsService;
 
 import org.springframework.security.oauth2.client.registration.ClientRegistration;
 import org.springframework.security.oauth2.client.registration.ClientRegistrations;
@@ -16,10 +17,11 @@ import reactor.core.publisher.Mono;
 public class TenantClientRegistrationRepository implements ReactiveClientRegistrationRepository {
 
 	private static final Map<String,Mono<ClientRegistration>> clientRegistrations = new ConcurrentHashMap<>();
-	private final TenantSecurityProperties tenantSecurityProperties;
 
-	public TenantClientRegistrationRepository(TenantSecurityProperties tenantSecurityProperties) {
-		this.tenantSecurityProperties = tenantSecurityProperties;
+    private final TenantDetailsService tenantDetailsService;
+
+	public TenantClientRegistrationRepository(TenantDetailsService tenantDetailsService) {
+        this.tenantDetailsService = tenantDetailsService;
 	}
 
 	@Override
@@ -28,18 +30,17 @@ public class TenantClientRegistrationRepository implements ReactiveClientRegistr
 	}
 
 	private Mono<ClientRegistration> buildClientRegistration(String registrationId) {
-		return Mono.just(ClientRegistrations.fromOidcIssuerLocation(computeTenantIssuerUri(registrationId))
+        var tenantDetails = tenantDetailsService.loadTenantByIdentifier(registrationId);
+        if (tenantDetails == null) {
+            throw new TenantResolutionException("A valid tenant must be specified for authentication requests");
+        }
+		return Mono.just(ClientRegistrations.fromOidcIssuerLocation(tenantDetails.issuer())
 			.registrationId(registrationId)
-			.clientId(tenantSecurityProperties.clientId())
-			.clientSecret(tenantSecurityProperties.clientSecret())
+			.clientId(tenantDetails.clientId())
+			.clientSecret(tenantDetails.clientSecret())
 			.redirectUri("{baseUrl}/login/oauth2/code/" + registrationId)
 			.scope("openid")
 			.build());
-	}
-
-	private String computeTenantIssuerUri(String tenantId) {
-		var issuerBaseUri = tenantSecurityProperties.issuerBaseUri().toString().strip();
-		return issuerBaseUri + tenantId;
 	}
 
 }

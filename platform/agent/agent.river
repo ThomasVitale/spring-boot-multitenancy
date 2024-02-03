@@ -1,0 +1,179 @@
+/********************************************
+ * Agent
+ ********************************************/
+
+logging {
+  level  = "info"
+  format = "logfmt"
+}
+
+tracing {
+  sampling_fraction = 0.1
+  write_to          = [otelcol.exporter.otlp.default.input]
+}
+
+/********************************************
+ * Metrics
+ ********************************************/
+
+prometheus.exporter.agent "default" {}
+
+prometheus.exporter.postgres "default" {
+  data_source_names = [
+    "postgresql://" + env("POSTGRES_USER") + ":" + env("POSTGRES_PASSWORD") + "@postgres:5432/grafana?sslmode=disable",
+  ]
+}
+
+prometheus.scrape "exporters" {
+  targets = concat(
+    prometheus.exporter.agent.default.targets,
+    prometheus.exporter.postgres.default.targets,
+  )
+
+  job_name        = "integrations"
+  scrape_interval = "10s"
+  scrape_timeout  = "10s"
+
+  forward_to = [prometheus.remote_write.default.receiver]
+}
+
+prometheus.scrape "services" {
+  targets = [
+    {
+      __address__       = "host.docker.internal:80",
+      __metrics_path__  = "/actuator/prometheus",
+      job               = "services/spring-boot",
+    },
+    {
+      __address__       = "host.docker.internal:8181",
+      __metrics_path__  = "/actuator/prometheus",
+      job               = "services/spring-boot",
+    },
+    {
+      __address__       = "host.docker.internal:8282",
+      __metrics_path__  = "/actuator/prometheus",
+      job               = "services/spring-boot",
+    },
+    {
+      __address__       = "host.docker.internal:8080",
+      __metrics_path__  = "/metrics",
+      job               = "services/quarkus",
+      application       = "keycloak",
+    },
+  ]
+
+  job_name        = "services"
+  scrape_interval = "5s"
+  scrape_timeout  = "5s"
+
+  forward_to = [prometheus.remote_write.default.receiver]
+}
+
+prometheus.remote_write "default" {
+  endpoint {
+    url                     = env("PROMETHEUS_URL")
+    send_native_histograms  = true
+  }
+  external_labels = {
+    environment = env("ENVIRONMENT"),
+    hostname    = env("HOSTNAME"),
+  }
+  wal {
+    truncate_frequency = "15m"
+  }
+}
+
+/********************************************
+ * Logs
+ ********************************************/
+
+discovery.docker "containers" {
+  host = "unix:///var/run/docker.sock"
+}
+
+discovery.relabel "containers" {
+  targets = discovery.docker.containers.targets
+
+  rule {
+    action        = "replace"
+    source_labels = ["__meta_docker_container_name"]
+    regex         = "/(.*)"
+    target_label  = "application"
+  }
+
+  rule {
+      action        = "replace"
+      source_labels = ["__meta_docker_container_label_org_opencontainers_image_version"]
+      regex         = "/(.*)"
+      target_label  = "version"
+    }
+}
+
+loki.source.docker "services" {
+  host       = "unix:///var/run/docker.sock"
+  targets    = discovery.relabel.containers.output 
+  forward_to = [loki.write.default.receiver]
+}
+
+loki.write "default" {
+	endpoint {
+		url = env("LOKI_URL")
+	}
+	external_labels = {
+    environment = env("ENVIRONMENT"),
+    hostname    = env("HOSTNAME"),
+  }
+  wal {
+    enabled = true
+  }
+}
+
+/********************************************
+ * Traces
+ ********************************************/
+
+otelcol.receiver.otlp "default" {
+  grpc {
+    endpoint = "localhost:4317"
+  }
+
+  http {
+    endpoint = "localhost:4318"
+  }
+
+  output {
+    logs    = [otelcol.processor.memory_limiter.default.input]
+    metrics = [otelcol.processor.memory_limiter.default.input]
+    traces  = [otelcol.processor.memory_limiter.default.input]
+  }
+}
+
+otelcol.processor.memory_limiter "default" {
+  check_interval = "1s"
+  
+  limit_percentage          = 85
+  spike_limit_percentage    = 20
+
+  output {
+    logs    = [otelcol.processor.batch.default.input]
+    metrics = [otelcol.processor.batch.default.input]
+    traces  = [otelcol.processor.batch.default.input]
+  }
+}
+
+otelcol.processor.batch "default" {
+  output {
+    metrics = [otelcol.exporter.otlp.default.input]
+    logs    = [otelcol.exporter.otlp.default.input]
+    traces  = [otelcol.exporter.otlp.default.input]
+  }
+}
+
+otelcol.exporter.otlp "default" {
+  client {
+    endpoint = env("TEMPO_URL")
+    tls {
+      insecure = true
+    }
+  }
+}

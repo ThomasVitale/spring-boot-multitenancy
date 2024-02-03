@@ -3,8 +3,10 @@ package com.thomasvitale.instrumentservice.multitenancy.security;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-import com.thomasvitale.instrumentservice.multitenancy.context.TenantContextHolder;
 import jakarta.servlet.http.HttpServletRequest;
+
+import com.thomasvitale.instrumentservice.multitenancy.context.TenantContextHolder;
+import com.thomasvitale.instrumentservice.multitenancy.tenantdetails.TenantDetailsService;
 
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationManagerResolver;
@@ -16,10 +18,10 @@ import org.springframework.stereotype.Component;
 public class TenantAuthenticationManagerResolver implements AuthenticationManagerResolver<HttpServletRequest> {
 
 	private static final Map<String,AuthenticationManager> authenticationManagers = new ConcurrentHashMap<>();
-	private final TenantSecurityProperties tenantSecurityProperties;
+	private final TenantDetailsService tenantDetailsService;
 
-	public TenantAuthenticationManagerResolver(TenantSecurityProperties tenantSecurityProperties) {
-		this.tenantSecurityProperties = tenantSecurityProperties;
+	public TenantAuthenticationManagerResolver(TenantDetailsService tenantDetailsService) {
+        this.tenantDetailsService = tenantDetailsService;
 	}
 
 	@Override
@@ -29,8 +31,7 @@ public class TenantAuthenticationManagerResolver implements AuthenticationManage
 	}
 
 	private AuthenticationManager buildAuthenticationManager(String tenantId) {
-		var issuerBaseUri = tenantSecurityProperties.issuerBaseUri().toString().strip();
-		var issuerUri = issuerBaseUri + tenantId;
+		var issuerUri = tenantDetailsService.loadTenantByIdentifier(tenantId).issuer();
 		var jwtAuthenticationprovider = new JwtAuthenticationProvider(JwtDecoders.fromIssuerLocation(issuerUri));
 		return jwtAuthenticationprovider::authenticate;
 	}

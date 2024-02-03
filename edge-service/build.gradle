@@ -33,20 +33,20 @@ dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-oauth2-client'
 	implementation 'org.springframework.boot:spring-boot-starter-webflux'
 	implementation 'org.springframework.cloud:spring-cloud-starter-gateway'
-	implementation 'io.micrometer:micrometer-tracing-bridge-otel'
-	implementation 'io.opentelemetry:opentelemetry-exporter-zipkin'
-
-	developmentOnly 'org.springframework.boot:spring-boot-devtools'
+    implementation 'io.micrometer:micrometer-tracing-bridge-otel'
+    implementation 'io.opentelemetry:opentelemetry-exporter-otlp'
 
 	runtimeOnly 'io.micrometer:micrometer-registry-prometheus'
     runtimeOnly 'com.github.loki4j:loki-logback-appender:1.5.0-m1'
 
 	// Only on Apple Silicon. Why it's necessary: https://github.com/netty/netty/issues/11020
-	runtimeOnly 'io.netty:netty-resolver-dns-native-macos:4.1.91.Final:osx-aarch_64'
+	runtimeOnly 'io.netty:netty-resolver-dns-native-macos:4.1.105.Final:osx-aarch_64'
 
 	annotationProcessor 'org.springframework.boot:spring-boot-configuration-processor'
 
-	testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    testAndDevelopmentOnly 'org.springframework.boot:spring-boot-devtools'
+
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
 	testImplementation 'io.projectreactor:reactor-test'
 }
 

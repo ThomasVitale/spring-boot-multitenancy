@@ -4,10 +4,13 @@ server:
 spring:
   application:
     name: instrument-service
+  flyway:
+    locations: classpath:db/migration/default
+    schemas: default
 
 logging:
   pattern:
-    level: "%5p [${spring.application.name:},%X{traceId:-},%X{spanId:-}] tenantId=%X{tenantId:-}"
+    correlation: '[%X{traceId:-}-%X{spanId:-}] [%X{tenantId:-}] '
 
 management:
   endpoints:
@@ -21,20 +24,20 @@ management:
       percentiles-histogram:
         all: true
         http.server.requests: true
+  opentelemetry:
+    resource-attributes:
+      application: ${spring.application.name}
+      "service.name": ${spring.application.name}
+  otlp:
+    tracing:
+      endpoint: http://localhost:4318/v1/traces
   tracing:
     sampling:
       probability: 1.0
   prometheus:
     metrics:
       export:
-        step: 10s
-  info:
-    env:
-      enabled: true
-    java:
-      enabled: true
-    os:
-      enabled: true
+        step: 5s
   endpoint:
     health:
       probes:
@@ -43,15 +46,16 @@ management:
       show-components: always
 
 multitenancy:
-  security:
-    issuer-base-uri: http://localhost:8080/realms/
   tenants:
     - identifier: dukes
+      enabled: true
       schema: DUKES
-      enabled: true
+      issuer: http://localhost:8080/realms/dukes
     - identifier: beans
-      schema: BEANS
       enabled: true
+      schema: BEANS
+      issuer: http://localhost:8080/realms/beans
     - identifier: trixie
-      schema: TRIXIE
       enabled: false
+      schema: TRIXIE
+      issuer: http://localhost:8080/realms/trixie

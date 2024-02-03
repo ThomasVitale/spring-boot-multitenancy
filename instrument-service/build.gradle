@@ -32,7 +32,7 @@ dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-validation'
 	implementation 'org.springframework.boot:spring-boot-starter-web'
 	implementation 'io.micrometer:micrometer-tracing-bridge-otel'
-	implementation 'io.opentelemetry:opentelemetry-exporter-zipkin'
+	implementation 'io.opentelemetry:opentelemetry-exporter-otlp'
 	implementation 'net.ttddyy.observation:datasource-micrometer-spring-boot:1.0.3'
 	implementation 'org.flywaydb:flyway-core'
 	
@@ -41,10 +41,11 @@ dependencies {
 	runtimeOnly 'com.github.loki4j:loki-logback-appender:1.5.0-m1'
 	
 	annotationProcessor 'org.springframework.boot:spring-boot-configuration-processor'
-	
-	testImplementation 'org.springframework.boot:spring-boot-starter-test'
+
+    testAndDevelopmentOnly 'org.springframework.boot:spring-boot-devtools'
+
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
 	testImplementation 'org.springframework.boot:spring-boot-testcontainers'
-	testImplementation 'org.springframework.boot:spring-boot-devtools'
 	testImplementation 'org.testcontainers:junit-jupiter'
 	testImplementation 'org.testcontainers:postgresql'
 }

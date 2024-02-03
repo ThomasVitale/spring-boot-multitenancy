@@ -2,8 +2,6 @@ package com.thomasvitale.instrumentservice.multitenancy.tenantdetails;
 
 import java.util.List;
 
-import com.thomasvitale.instrumentservice.multitenancy.exceptions.TenantNotFoundException;
-
 import org.springframework.stereotype.Service;
 
 @Service
@@ -23,7 +21,9 @@ public class PropertiesTenantDetailsService implements TenantDetailsService {
     @Override
     public TenantDetails loadTenantByIdentifier(String identifier) {
         return tenantDetailsProperties.tenants().stream()
-                .findFirst().orElseThrow(() -> new TenantNotFoundException("tenant doesn't exist"));
+                .filter(TenantDetails::enabled)
+                .filter(tenantDetails -> identifier.equals(tenantDetails.identifier()))
+                .findFirst().orElse(null);
     }
 
 }

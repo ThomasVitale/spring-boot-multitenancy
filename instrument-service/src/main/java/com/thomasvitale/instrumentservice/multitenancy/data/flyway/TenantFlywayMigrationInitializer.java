@@ -27,15 +27,9 @@ public class TenantFlywayMigrationInitializer implements InitializingBean, Order
     @Override
     public void afterPropertiesSet() {
         tenantDetailsService.loadAllTenants().forEach(tenant -> {
-            Flyway tenantFlyway = tenantFlyway(tenant.schema());
-            tenantFlyway.migrate();
+            Flyway flyway = tenantFlyway(tenant.schema());
+            flyway.migrate();
         });
-    }
-
-    @Override
-    public int getOrder() {
-        // Executed after the default schema initialization in FlywayMigrationInitializer.
-        return 1;
     }
 
     private Flyway tenantFlyway(String schema) {
@@ -45,6 +39,12 @@ public class TenantFlywayMigrationInitializer implements InitializingBean, Order
                 .dataSource(dataSource)
                 .schemas(schema)
                 .load();
+    }
+
+    @Override
+    public int getOrder() {
+        // Executed after the default schema initialization in FlywayMigrationInitializer.
+        return 1;
     }
 
 }

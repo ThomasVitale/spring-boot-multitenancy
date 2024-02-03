@@ -10,6 +10,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import com.thomasvitale.instrumentservice.multitenancy.context.TenantContextHolder;
 import com.thomasvitale.instrumentservice.multitenancy.context.resolvers.HttpHeaderTenantResolver;
 import com.thomasvitale.instrumentservice.multitenancy.exceptions.TenantNotFoundException;
+import com.thomasvitale.instrumentservice.multitenancy.exceptions.TenantResolutionException;
 import com.thomasvitale.instrumentservice.multitenancy.tenantdetails.TenantDetailsService;
 
 import io.micrometer.common.KeyValue;
@@ -45,6 +46,8 @@ public class TenantContextFilter extends OncePerRequestFilter {
             TenantContextHolder.setTenantIdentifier(tenantIdentifier);
             configureLogs(tenantIdentifier);
             configureTraces(tenantIdentifier, request);
+        } else {
+            throw new TenantResolutionException("A tenant must be specified for requests to %s".formatted(request.getRequestURI()));
         }
 
         try {
@@ -53,6 +56,11 @@ public class TenantContextFilter extends OncePerRequestFilter {
             clear();
         }
 	}
+
+    @Override
+    protected boolean shouldNotFilter(HttpServletRequest request) {
+        return request.getRequestURI().startsWith("/actuator");
+    }
 
     private boolean isTenantValid(String tenantIdentifier) {
         var tenantDetails = tenantDetailsService.loadTenantByIdentifier(tenantIdentifier);

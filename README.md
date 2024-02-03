@@ -8,7 +8,7 @@
 
 ## Usage
 
-You can use Docker Compose to set up Keycloak and the Grafana observability stack.
+You can use Docker Compose to run the necessary backing services for observability, authentication, and AI.
 
 From the project root folder, run Docker Compose.
 
@@ -27,6 +27,9 @@ The Edge Service application can be run as follows:
 ```bash
 ./gradlew bootRun
 ```
+
+The Chat Service application can be run using one of the two techniques described above. If you don't want to rely on Testcontainers,
+make sure you have [Ollama](https://ollama.ai/) installed and the Llama2 model available (`ollama run llama2`).
 
 Two tenants are configured: `dukes` and `beans`. Ensure you add the following configuration to your `hosts` file to resolve tenants from DNS names.
 

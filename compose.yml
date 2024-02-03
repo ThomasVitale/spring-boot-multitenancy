@@ -1,9 +1,13 @@
 services:
 
+  # Applications
+
   keycloak:
     image: quay.io/keycloak/keycloak:23.0
     container_name: keycloak
-    command: start-dev --import-realm
+    command: start-dev --import-realm --metrics-enabled=true
+    depends_on:
+      - grafana-agent
     volumes:
       - ./platform/keycloak:/opt/keycloak/data/import
     environment:
@@ -12,8 +16,38 @@ services:
     ports:
       - 8080:8080
 
+  # Data
+
+  chroma:
+    image: ghcr.io/chroma-core/chroma:0.4.22
+    container_name: chroma
+    depends_on:
+      - grafana-agent
+    ports:
+      - 8000:8000
+    environment:
+      - CHROMA_OTEL_COLLECTION_ENDPOINT=http://grafana-agent:4317
+      - CHROMA_OTEL_SERVICE_NAME=chroma
+      - CHROMA_OTEL_GRANULARITY=all
+      - ANONYMIZED_TELEMETRY=False
+
+  postgres:
+    image: docker.io/library/postgres:15.5
+    container_name: postgres
+    depends_on:
+      - grafana-agent
+    environment:
+      - POSTGRES_USER=user
+      - POSTGRES_PASSWORD=password
+      - POSTGRES_DB=grafana
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    restart: unless-stopped
+
+  # Observability
+
   grafana:
-    image: grafana/grafana:9.3.6
+    image: docker.io/grafana/grafana-oss:10.3.1
     container_name: grafana
     depends_on:
       - loki
@@ -21,38 +55,92 @@ services:
       - tempo
     ports:
       - "3000:3000"
+    hostname: ${HOST_NAME:-localhost}
     environment:
       - GF_AUTH_ANONYMOUS_ENABLED=true
-      - GF_AUTH_ANONYMOUS_ORG_ROLE=Admin
-      - GF_AUTH_DISABLE_LOGIN_FORM=true
+      - GF_AUTH_ANONYMOUS_ORG_ROLE=Viewer
+      - GF_DATABASE_USER=user
+      - GF_DATABASE_PASSWORD=password
+      - GF_SECURITY_ADMIN_USER=user
+      - GF_SECURITY_ADMIN_PASSWORD=password
     volumes:
-      - ./platform/grafana/datasource.yml:/etc/grafana/provisioning/datasources/datasource.yml
-      - ./platform/grafana/dashboards:/etc/grafana/provisioning/dashboards
-      - ./platform/grafana/grafana.ini:/etc/grafana/grafana.ini
+      - ./platform/grafana/datasources:/etc/grafana/provisioning/datasources:ro
+      - ./platform/grafana/dashboards:/etc/grafana/provisioning/dashboards:ro
+      - ./platform/grafana/grafana.ini:/etc/grafana/grafana.ini:ro
+      - grafana-data:/var/lib/grafana
+    restart: unless-stopped
 
   loki:
-    image: grafana/loki:2.7.3
+    image: docker.io/grafana/loki:2.9.4
     container_name: loki
     command: -config.file=/etc/loki/local-config.yaml
     ports:
       - "3100:3100"
+    hostname: ${HOST_NAME:-localhost}
+    restart: unless-stopped
 
   prometheus:
-    image: prom/prometheus:v2.42.0
+    image: quay.io/prometheus/prometheus:v2.49.1
     container_name: prometheus
+    command:
+      - "--config.file=/etc/config/prometheus.yml"
+      - "--enable-feature=otlp-write-receiver"
+      - "--enable-feature=exemplar-storage"
+      - "--web.enable-remote-write-receiver"
     ports:
-      - "9090:9090"
+      - "9090"
+    hostname: ${HOST_NAME:-localhost}
     volumes:
-      - ./platform/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+      - ./platform/prometheus/prometheus.yml:/etc/config/prometheus.yml
+    restart: unless-stopped
 
   tempo:
-    image: grafana/tempo:2.0.0
+    image: docker.io/grafana/tempo:2.3.1
     container_name: tempo
     command: -config.file /etc/tempo-config.yml
     ports:
-      - "3110:3100"     # Tempo
-      - "4317:4317"     # OTLP gRPC
-      - "4318:4318"     # OTLP HTTP
-      - "9411:9411"     # Zipkin
+      - "3110"     # Tempo
+      - "4317"     # OTLP gRPC
+      - "4318"     # OTLP HTTP
+      - "9411"     # Zipkin
+    hostname: ${HOST_NAME:-localhost}
     volumes:
       - ./platform/tempo/tempo.yml:/etc/tempo-config.yml
+    restart: unless-stopped
+
+  grafana-agent:
+    image: docker.io/grafana/agent:v0.39.1
+    container_name: grafana-agent
+    command:
+      - "run"
+      - "--server.http.listen-addr=0.0.0.0:12345"
+      - "--storage.path=/data-agent"
+      - "--disable-reporting"
+      - "/etc/agent/config.river"
+    depends_on:
+      - loki
+      - prometheus
+      - tempo
+    hostname: ${HOST_NAME:-localhost}
+    environment:
+      - AGENT_MODE=flow
+      - ENVIRONMENT=dev
+      - LOKI_URL=http://loki:3100/loki/api/v1/push
+      - PROMETHEUS_URL=http://prometheus:9090/api/v1/write
+      - TEMPO_URL=http://tempo:4317
+      - POSTGRES_USER=user
+      - POSTGRES_PASSWORD=password
+    ports:
+      - "12345:12345"
+      - "4317:4317"
+      - "4318:4318"
+    volumes:
+      - ./platform/agent/agent.river:/etc/agent/config.river
+      - /var/run/docker.sock:/var/run/docker.sock
+      - grafana-agent-data:/data-agent
+    restart: unless-stopped
+
+volumes:
+  grafana-agent-data: { }
+  grafana-data: { }
+  postgres-data: { }
