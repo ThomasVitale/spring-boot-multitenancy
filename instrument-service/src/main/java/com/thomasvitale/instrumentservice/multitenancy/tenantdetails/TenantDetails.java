@@ -3,6 +3,5 @@ package com.thomasvitale.instrumentservice.multitenancy.tenantdetails;
 public record TenantDetails(
         String identifier,
         boolean enabled,
-        String schema,
-        String issuer
+        String schema
 ) {}

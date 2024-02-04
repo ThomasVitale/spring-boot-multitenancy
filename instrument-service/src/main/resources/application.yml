@@ -50,12 +50,9 @@ multitenancy:
     - identifier: dukes
       enabled: true
       schema: DUKES
-      issuer: http://localhost:8080/realms/dukes
     - identifier: beans
       enabled: true
       schema: BEANS
-      issuer: http://localhost:8080/realms/beans
     - identifier: trixie
       enabled: false
       schema: TRIXIE
-      issuer: http://localhost:8080/realms/trixie
