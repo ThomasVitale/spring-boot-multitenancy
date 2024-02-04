@@ -16,39 +16,25 @@ import org.springframework.stereotype.Component;
 @Component
 public class ConnectionProvider implements MultiTenantConnectionProvider<String>, HibernatePropertiesCustomizer {
 
-  	private final DataSource dataSource;
-    private final TenantDetailsService tenantDetailsService;
-
-	ConnectionProvider(DataSource dataSource, TenantDetailsService tenantDetailsService) {
-		this.dataSource = dataSource;
-        this.tenantDetailsService = tenantDetailsService;
+    @Override
+    public Connection getAnyConnection() throws SQLException {
+        return null;
     }
 
-	@Override
-	public Connection getAnyConnection() throws SQLException {
-		return getConnection("DEFAULT");
-	}
+    @Override
+    public void releaseAnyConnection(Connection connection) throws SQLException {
 
-	@Override
-	public void releaseAnyConnection(Connection connection) throws SQLException {
-		connection.close();
-	}
+    }
 
-	@Override
-	public Connection getConnection(String tenantIdentifier) throws SQLException {
-        var tenantDetails = tenantDetailsService.loadTenantByIdentifier(tenantIdentifier);
-        var schema = tenantDetails != null ? tenantDetails.schema() : tenantIdentifier;
+    @Override
+    public Connection getConnection(String tenantIdentifier) throws SQLException {
+        return null;
+    }
 
-		Connection connection = dataSource.getConnection();
-		connection.setSchema(schema);
-		return connection;
-	}
+    @Override
+    public void releaseConnection(String tenantIdentifier, Connection connection) throws SQLException {
 
-	@Override
-	public void releaseConnection(String tenantIdentifier, Connection connection) throws SQLException {
-    	connection.setSchema("DEFAULT");
-		connection.close();
-  	}
+    }
 
 	@Override
 	public boolean supportsAggressiveRelease() {
@@ -65,9 +51,9 @@ public class ConnectionProvider implements MultiTenantConnectionProvider<String>
 		throw new UnsupportedOperationException("Unimplemented method 'unwrap'.");
 	}
 
-	@Override
-	public void customize(Map<String, Object> hibernateProperties) {
-		hibernateProperties.put(AvailableSettings.MULTI_TENANT_CONNECTION_PROVIDER, this);
-	}
+    @Override
+    public void customize(Map<String, Object> hibernateProperties) {
+
+    }
 
 }

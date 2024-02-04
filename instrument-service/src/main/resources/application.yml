@@ -4,9 +4,6 @@ server:
 spring:
   application:
     name: instrument-service
-  flyway:
-    locations: classpath:db/migration/default
-    schemas: default
 
 multitenancy:
   tenants:

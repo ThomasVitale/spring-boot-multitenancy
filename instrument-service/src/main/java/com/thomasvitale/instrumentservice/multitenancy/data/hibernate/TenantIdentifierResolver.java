@@ -13,21 +13,20 @@ import org.springframework.stereotype.Component;
 @Component
 public class TenantIdentifierResolver implements CurrentTenantIdentifierResolver<String>, HibernatePropertiesCustomizer {
 
-    public static final String DEFAULT_TENANT = "DEFAULT";
 
-	@Override
-	public String resolveCurrentTenantIdentifier() {
-		return Objects.requireNonNullElse(TenantContextHolder.getTenantIdentifier(), DEFAULT_TENANT);
-	}
+    @Override
+    public String resolveCurrentTenantIdentifier() {
+        return null;
+    }
 
 	@Override
 	public boolean validateExistingCurrentSessions() {
 		return true;
 	}
 
-	@Override
-	public void customize(Map<String, Object> hibernateProperties) {
-		hibernateProperties.put(AvailableSettings.MULTI_TENANT_IDENTIFIER_RESOLVER, this);
-	}
+    @Override
+    public void customize(Map<String, Object> hibernateProperties) {
+
+    }
 
 }
