@@ -17,12 +17,12 @@ import org.springframework.ai.vectorstore.VectorStore;
 import org.springframework.stereotype.Service;
 
 @Service
-class ChatService {
+class DocumentChatService {
 
     private final ChatClient chatClient;
     private final VectorStore vectorStore;
 
-    ChatService(ChatClient chatClient, VectorStore vectorStore) {
+    DocumentChatService(ChatClient chatClient, VectorStore vectorStore) {
         this.chatClient = chatClient;
         this.vectorStore = vectorStore;
     }

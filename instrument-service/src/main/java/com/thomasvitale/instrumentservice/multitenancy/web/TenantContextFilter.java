@@ -41,7 +41,7 @@ public class TenantContextFilter extends OncePerRequestFilter {
 
         if (StringUtils.hasText(tenantIdentifier)) {
             if (!isTenantValid(tenantIdentifier)) {
-                throw new TenantNotFoundException();
+                throw new TenantNotFoundException("The specified tenant doesn't exist or it's not enabled");
             }
             TenantContextHolder.setTenantIdentifier(tenantIdentifier);
             configureLogs(tenantIdentifier);
@@ -64,7 +64,7 @@ public class TenantContextFilter extends OncePerRequestFilter {
 
     private boolean isTenantValid(String tenantIdentifier) {
         var tenantDetails = tenantDetailsService.loadTenantByIdentifier(tenantIdentifier);
-        return tenantDetails.enabled();
+        return tenantDetails != null && tenantDetails.enabled();
     }
 
 	private void configureLogs(String tenantId) {

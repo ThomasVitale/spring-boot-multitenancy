@@ -13,11 +13,11 @@ import org.springframework.stereotype.Component;
 @Component
 public class TenantIdentifierResolver implements CurrentTenantIdentifierResolver<String>, HibernatePropertiesCustomizer {
 
-    public static final String DEFAULT_SCHEMA = "DEFAULT";
+    public static final String DEFAULT_TENANT = "DEFAULT";
 
 	@Override
 	public String resolveCurrentTenantIdentifier() {
-		return Objects.requireNonNullElse(TenantContextHolder.getTenantIdentifier(), DEFAULT_SCHEMA);
+		return Objects.requireNonNullElse(TenantContextHolder.getTenantIdentifier(), DEFAULT_TENANT);
 	}
 
 	@Override

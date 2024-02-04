@@ -12,12 +12,12 @@ spring:
         - TokenRelay
       routes:
         - id: instrument-route
-          uri: ${INSTRUMENT_SERVICE_URL:http://localhost:8181}
+          uri: http://localhost:8181
           predicates:
-            - Host={segment}.rock
+            - Host={tenant}.rock
             - Path=/instruments/**
           filters:
-            - AddRequestHeader=X-TenantId,{segment}
+            - AddRequestHeader=X-TenantId,{tenant}
 
 logging:
   pattern:

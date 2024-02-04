@@ -5,17 +5,17 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-class ChatController {
+class DocumentChatController {
 
-    private final ChatService chatService;
+    private final DocumentChatService documentChatService;
 
-    ChatController(ChatService chatService) {
-        this.chatService = chatService;
+    DocumentChatController(DocumentChatService documentChatService) {
+        this.documentChatService = documentChatService;
     }
 
     @PostMapping("/ai/doc/chat")
     String chatWithDocument(@RequestBody String input) {
-        return chatService.chatWithDocument(input).getContent();
+        return documentChatService.chatWithDocument(input).getContent();
     }
 
 }

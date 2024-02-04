@@ -13,8 +13,6 @@ import org.hibernate.engine.jdbc.connections.spi.MultiTenantConnectionProvider;
 import org.springframework.boot.autoconfigure.orm.jpa.HibernatePropertiesCustomizer;
 import org.springframework.stereotype.Component;
 
-import static com.thomasvitale.instrumentservice.multitenancy.data.hibernate.TenantIdentifierResolver.DEFAULT_SCHEMA;
-
 @Component
 public class ConnectionProvider implements MultiTenantConnectionProvider<String>, HibernatePropertiesCustomizer {
 
@@ -28,7 +26,7 @@ public class ConnectionProvider implements MultiTenantConnectionProvider<String>
 
 	@Override
 	public Connection getAnyConnection() throws SQLException {
-		return getConnection(DEFAULT_SCHEMA);
+		return getConnection("DEFAULT");
 	}
 
 	@Override
@@ -48,7 +46,7 @@ public class ConnectionProvider implements MultiTenantConnectionProvider<String>
 
 	@Override
 	public void releaseConnection(String tenantIdentifier, Connection connection) throws SQLException {
-    	connection.setSchema(DEFAULT_SCHEMA);
+    	connection.setSchema("DEFAULT");
 		connection.close();
   	}
 
