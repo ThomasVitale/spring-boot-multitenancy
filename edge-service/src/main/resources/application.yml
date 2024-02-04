@@ -4,17 +4,6 @@ server:
 spring:
   application:
     name: edge-service
-  
-  cloud:
-    gateway:
-      routes:
-        - id: instrument-route
-          uri: http://localhost:8181
-          predicates:
-            - Host={tenant}.rock
-            - Path=/instruments/**
-          filters:
-            - AddRequestHeader=X-TenantId,{tenant}
 
 logging:
   pattern:
