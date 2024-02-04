@@ -36,21 +36,16 @@ public class TenantContextFilter extends OncePerRequestFilter {
 	protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
         var tenantIdentifier = httpRequestTenantResolver.resolveTenantIdentifier(request);
 
-        if (StringUtils.hasText(tenantIdentifier)) {
-            if (!isTenantValid(tenantIdentifier)) {
-                throw new TenantNotFoundException("The specified tenant doesn't exist or it's not enabled");
-            }
+        if (StringUtils.hasText(tenantIdentifier) && isTenantValid(tenantIdentifier)) {
             TenantContextHolder.setTenantIdentifier(tenantIdentifier);
-            configureLogs(tenantIdentifier);
-            configureTraces(tenantIdentifier, request);
         } else {
-            throw new TenantResolutionException("A tenant must be specified for requests to %s".formatted(request.getRequestURI()));
+            throw new TenantResolutionException("A valid tenant must be specified for requests to %s".formatted(request.getRequestURI()));
         }
 
         try {
             filterChain.doFilter(request, response);
         } finally {
-            clear();
+            TenantContextHolder.clear();
         }
 	}
 
@@ -63,19 +58,5 @@ public class TenantContextFilter extends OncePerRequestFilter {
         var tenantDetails = tenantDetailsService.loadTenantByIdentifier(tenantIdentifier);
         return tenantDetails != null && tenantDetails.enabled();
     }
-
-	private void configureLogs(String tenantId) {
-		MDC.put("tenantId", tenantId);
-	}
-
-	private void configureTraces(String tenantId, HttpServletRequest request) {
-		ServerHttpObservationFilter.findObservationContext(request).ifPresent(context ->
-				context.addHighCardinalityKeyValue(KeyValue.of("tenant.id", tenantId)));
-	}
-
-	private void clear() {
-		MDC.remove("tenantId");
-		TenantContextHolder.clear();
-	}
 
 }
