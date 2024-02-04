@@ -9,7 +9,6 @@ import jakarta.servlet.http.HttpServletResponse;
 
 import com.thomasvitale.instrumentservice.multitenancy.context.TenantContextHolder;
 import com.thomasvitale.instrumentservice.multitenancy.context.resolvers.HttpHeaderTenantResolver;
-import com.thomasvitale.instrumentservice.multitenancy.exceptions.TenantNotFoundException;
 import com.thomasvitale.instrumentservice.multitenancy.exceptions.TenantResolutionException;
 import com.thomasvitale.instrumentservice.multitenancy.tenantdetails.TenantDetailsService;
 
@@ -39,15 +38,12 @@ public class TenantContextFilter extends OncePerRequestFilter {
 	protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
         var tenantIdentifier = httpRequestTenantResolver.resolveTenantIdentifier(request);
 
-        if (StringUtils.hasText(tenantIdentifier)) {
-            if (!isTenantValid(tenantIdentifier)) {
-                throw new TenantNotFoundException("The specified tenant doesn't exist or it's not enabled");
-            }
+        if (StringUtils.hasText(tenantIdentifier) && isTenantValid(tenantIdentifier)) {
             TenantContextHolder.setTenantIdentifier(tenantIdentifier);
             configureLogs(tenantIdentifier);
             configureTraces(tenantIdentifier, request);
         } else {
-            throw new TenantResolutionException("A tenant must be specified for requests to %s".formatted(request.getRequestURI()));
+            throw new TenantResolutionException("A valid tenant must be specified for requests to %s".formatted(request.getRequestURI()));
         }
 
         try {
