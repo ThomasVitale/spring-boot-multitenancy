@@ -7,9 +7,6 @@ spring:
   
   cloud:
     gateway:
-      default-filters:
-        - SaveSession
-        - TokenRelay
       routes:
         - id: instrument-route
           uri: http://localhost:8181
@@ -55,21 +52,3 @@ management:
         enabled: true
       show-details: always
       show-components: always
-
-multitenancy:
-  tenants:
-    - identifier: dukes
-      enabled: true
-      client-id: edge-service
-      client-secret: rocking-secret
-      issuer: http://localhost:8080/realms/dukes
-    - identifier: beans
-      enabled: true
-      client-id: edge-service
-      client-secret: rocking-secret
-      issuer: http://localhost:8080/realms/beans
-    - identifier: trixie
-      enabled: false
-      client-id: edge-service
-      client-secret: rocking-secret
-      issuer: http://localhost:8080/realms/trixie
