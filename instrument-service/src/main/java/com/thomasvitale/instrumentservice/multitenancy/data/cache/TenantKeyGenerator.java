@@ -8,10 +8,6 @@ import org.springframework.cache.interceptor.KeyGenerator;
 import org.springframework.cache.interceptor.SimpleKeyGenerator;
 import org.springframework.stereotype.Component;
 
-/**
- * An implementation of {@link KeyGenerator} that generates cache keys combining the
- * current tenant identifier with the given method and parameters.
- */
 @Component
 public final class TenantKeyGenerator implements KeyGenerator {
 

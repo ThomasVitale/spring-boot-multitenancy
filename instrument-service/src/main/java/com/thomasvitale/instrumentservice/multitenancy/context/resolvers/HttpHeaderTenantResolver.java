@@ -5,9 +5,6 @@ import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Component;
 
-/**
- * Strategy used to resolve the current tenant from a header in an HTTP request.
- */
 @Component
 public class HttpHeaderTenantResolver implements TenantResolver<HttpServletRequest> {
 

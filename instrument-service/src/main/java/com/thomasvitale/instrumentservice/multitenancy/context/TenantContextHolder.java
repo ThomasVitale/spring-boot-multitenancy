@@ -8,9 +8,6 @@ import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
-/**
- * A shared, thread-local store for the current tenant.
- */
 public final class TenantContextHolder {
 
     private static final Logger log = LoggerFactory.getLogger(TenantContextHolder.class);

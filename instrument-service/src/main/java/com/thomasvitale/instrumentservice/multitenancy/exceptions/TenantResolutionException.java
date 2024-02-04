@@ -1,8 +1,5 @@
 package com.thomasvitale.instrumentservice.multitenancy.exceptions;
 
-/**
- * Thrown when an error occurred during the tenant resolution process.
- */
 public class TenantResolutionException extends IllegalStateException {
 
     public TenantResolutionException() {

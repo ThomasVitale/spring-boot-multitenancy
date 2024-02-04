@@ -21,9 +21,6 @@ import org.springframework.util.StringUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
 import org.springframework.web.filter.ServerHttpObservationFilter;
 
-/**
- * Establish a tenant context from an HTTP request, if tenant information is available.
- */
 @Component
 public class TenantContextFilter extends OncePerRequestFilter {
 
