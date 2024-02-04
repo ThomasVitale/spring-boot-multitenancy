@@ -1,0 +1,38 @@
+name: Commit Stage
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build:
+    name: Build
+    runs-on: ubuntu-22.04
+    permissions:
+      contents: read
+    strategy:
+      fail-fast: false
+      matrix:
+        project: [
+          chat-service,
+          edge-service,
+          instrument-service
+        ]
+    steps:
+      - name: Check out source code
+        uses: actions/checkout@v4
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          java-version: 21
+          distribution: temurin
+
+      - name: Compile and test
+        run: |
+          cd ${{ matrix.project }}
+          chmod +x gradlew
+          ./gradlew build
