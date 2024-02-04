@@ -29,9 +29,10 @@ class ChatService {
 
     AssistantMessage chatWithDocument(String message) {
         var systemPromptTemplate = new SystemPromptTemplate("""
-                Answer questions given the context information below (DOCUMENTS section) and no prior knowledge,
-                but act as if you knew this information innately. If the answer is not found in the DOCUMENTS section,
-                simply state that you don't know the answer.
+                You're assisting with questions about rock bands, their story, their members, and their music.
+
+                Use the information from the DOCUMENTS section to provide accurate answers and assume no prior knowledge,
+                but act as if you knew this information innately. If unsure, simply state that you don't know.
 
                 DOCUMENTS:
                 {documents}
@@ -40,8 +41,8 @@ class ChatService {
         List<Document> similarDocuments = vectorStore.similaritySearch(
                 SearchRequest
                         .query(message)
-                        .withFilterExpression("tenant == '%s'".formatted(TenantContextHolder.getTenantIdentifier()))
-                        .withTopK(2));
+                        .withFilterExpression("tenant == '%s'".formatted(TenantContextHolder.getRequiredTenantIdentifier()))
+                        .withTopK(3));
         String documents = similarDocuments.stream().map(Document::getContent).collect(Collectors.joining(System.lineSeparator()));
 
         Map<String,Object> model = Map.of("documents", documents);

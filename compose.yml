@@ -73,10 +73,12 @@ services:
   loki:
     image: docker.io/grafana/loki:2.9.4
     container_name: loki
-    command: -config.file=/etc/loki/local-config.yaml
+    command: -config.file=/etc/config/loki.yml
     ports:
       - "3100:3100"
     hostname: ${HOST_NAME:-localhost}
+    volumes:
+      - ./platform/loki/loki.yml:/etc/config/loki.yml
     restart: unless-stopped
 
   prometheus:
