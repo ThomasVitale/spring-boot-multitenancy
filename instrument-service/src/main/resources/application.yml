@@ -9,10 +9,7 @@ multitenancy:
   tenants:
     - identifier: dukes
       enabled: true
-      schema: DUKES
     - identifier: beans
       enabled: true
-      schema: BEANS
     - identifier: trixie
       enabled: false
-      schema: TRIXIE
