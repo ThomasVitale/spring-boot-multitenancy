@@ -25,18 +25,16 @@ import org.springframework.web.filter.ServerHttpObservationFilter;
 public class TenantContextFilter extends OncePerRequestFilter {
 
 	private final HttpHeaderTenantResolver httpRequestTenantResolver;
-    private final TenantDetailsService tenantDetailsService;
 
-	public TenantContextFilter(HttpHeaderTenantResolver httpHeaderTenantResolver, TenantDetailsService tenantDetailsService) {
+	public TenantContextFilter(HttpHeaderTenantResolver httpHeaderTenantResolver) {
 		this.httpRequestTenantResolver = httpHeaderTenantResolver;
-        this.tenantDetailsService = tenantDetailsService;
     }
 
 	@Override
 	protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
         var tenantIdentifier = httpRequestTenantResolver.resolveTenantIdentifier(request);
 
-        if (StringUtils.hasText(tenantIdentifier) && isTenantValid(tenantIdentifier)) {
+        if (StringUtils.hasText(tenantIdentifier)) {
             TenantContextHolder.setTenantIdentifier(tenantIdentifier);
         } else {
             throw new TenantResolutionException("A valid tenant must be specified for requests to %s".formatted(request.getRequestURI()));
@@ -52,11 +50,6 @@ public class TenantContextFilter extends OncePerRequestFilter {
     @Override
     protected boolean shouldNotFilter(HttpServletRequest request) {
         return request.getRequestURI().startsWith("/actuator");
-    }
-
-    private boolean isTenantValid(String tenantIdentifier) {
-        var tenantDetails = tenantDetailsService.loadTenantByIdentifier(tenantIdentifier);
-        return tenantDetails != null && tenantDetails.enabled();
     }
 
 }
