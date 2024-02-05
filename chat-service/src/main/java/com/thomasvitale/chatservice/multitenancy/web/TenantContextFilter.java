@@ -1,18 +1,6 @@
 package com.thomasvitale.chatservice.multitenancy.web;
 
-import com.thomasvitale.chatservice.multitenancy.context.TenantContextHolder;
-import com.thomasvitale.chatservice.multitenancy.context.resolvers.HttpHeaderTenantResolver;
-
-import com.thomasvitale.chatservice.multitenancy.exceptions.TenantNotFoundException;
-import com.thomasvitale.chatservice.multitenancy.exceptions.TenantResolutionException;
-import com.thomasvitale.chatservice.multitenancy.tenantdetails.TenantDetailsService;
-
-import io.micrometer.common.KeyValue;
-
-import jakarta.servlet.FilterChain;
-import jakarta.servlet.ServletException;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
+import java.io.IOException;
 
 import org.slf4j.MDC;
 import org.springframework.stereotype.Component;
@@ -20,7 +8,17 @@ import org.springframework.util.StringUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
 import org.springframework.web.filter.ServerHttpObservationFilter;
 
-import java.io.IOException;
+import com.thomasvitale.chatservice.multitenancy.context.TenantContextHolder;
+import com.thomasvitale.chatservice.multitenancy.context.resolvers.HttpHeaderTenantResolver;
+import com.thomasvitale.chatservice.multitenancy.exceptions.TenantNotFoundException;
+import com.thomasvitale.chatservice.multitenancy.exceptions.TenantResolutionException;
+import com.thomasvitale.chatservice.multitenancy.tenantdetails.TenantDetailsService;
+
+import io.micrometer.common.KeyValue;
+import jakarta.servlet.FilterChain;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 
 @Component
 public class TenantContextFilter extends OncePerRequestFilter {
@@ -57,7 +55,7 @@ public class TenantContextFilter extends OncePerRequestFilter {
 
     @Override
     protected boolean shouldNotFilter(HttpServletRequest request) {
-        return request.getRequestURI().startsWith("/actuator");
+        return request.getRequestURI().startsWith("/actuator") || request.getRequestURI().startsWith("/ai/chat");
     }
 
     private boolean isTenantValid(String tenantIdentifier) {
