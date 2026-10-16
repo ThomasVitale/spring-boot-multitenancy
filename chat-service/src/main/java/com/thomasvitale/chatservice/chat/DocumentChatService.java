@@ -4,9 +4,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import com.thomasvitale.chatservice.multitenancy.context.TenantContextHolder;
+import io.arconia.multitenancy.core.context.TenantContext;
 
-import org.springframework.ai.chat.ChatClient;
+import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.messages.AssistantMessage;
 import org.springframework.ai.chat.messages.UserMessage;
 import org.springframework.ai.chat.prompt.Prompt;
@@ -39,11 +39,12 @@ class DocumentChatService {
                 """);
 
         List<Document> similarDocuments = vectorStore.similaritySearch(
-                SearchRequest
+                SearchRequest.builder()
                         .query(message)
-                        .withFilterExpression("tenant == '%s'".formatted(TenantContextHolder.getRequiredTenantIdentifier()))
-                        .withTopK(3));
-        String documents = similarDocuments.stream().map(Document::getContent).collect(Collectors.joining(System.lineSeparator()));
+                        .filterExpression("tenant == '%s'".formatted(TenantContext.getRequiredTenantIdentifier()))
+                        .topK(3)
+                        .build());
+        String documents = similarDocuments.stream().map(Document::getFormattedContent).collect(Collectors.joining(System.lineSeparator()));
 
         Map<String,Object> model = Map.of("documents", documents);
         var systemMessage = systemPromptTemplate.createMessage(model);
@@ -51,7 +52,9 @@ class DocumentChatService {
         var userMessage = new UserMessage(message);
         var prompt = new Prompt(List.of(systemMessage, userMessage));
 
-        var chatResponse = chatClient.call(prompt);
+        var chatResponse = chatClient.prompt(prompt)
+                .call()
+                .chatResponse();
         return chatResponse.getResult().getOutput();
     }
 

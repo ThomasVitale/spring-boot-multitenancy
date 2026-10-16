@@ -1,0 +1,15 @@
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*"
+
+arconia:
+  dev:
+    services:
+      keycloak:
+        port: 8080
+        client:
+          enabled: false
+        realm:
+          import-paths: file:../keycloak/realm-config.json

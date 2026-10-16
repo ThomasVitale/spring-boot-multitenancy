@@ -3,11 +3,11 @@ package com.thomasvitale.instrumentservice.multitenancy.data.hibernate;
 import java.util.Map;
 import java.util.Objects;
 
-import com.thomasvitale.instrumentservice.multitenancy.context.TenantContextHolder;
+import io.arconia.multitenancy.core.context.TenantContext;
 
 import org.hibernate.cfg.AvailableSettings;
 import org.hibernate.context.spi.CurrentTenantIdentifierResolver;
-import org.springframework.boot.autoconfigure.orm.jpa.HibernatePropertiesCustomizer;
+import org.springframework.boot.hibernate.autoconfigure.HibernatePropertiesCustomizer;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -17,7 +17,7 @@ public class TenantIdentifierResolver implements CurrentTenantIdentifierResolver
 
 	@Override
 	public String resolveCurrentTenantIdentifier() {
-		return Objects.requireNonNullElse(TenantContextHolder.getTenantIdentifier(), DEFAULT_TENANT);
+		return Objects.requireNonNullElse(TenantContext.getTenantIdentifier(), DEFAULT_TENANT);
 	}
 
 	@Override

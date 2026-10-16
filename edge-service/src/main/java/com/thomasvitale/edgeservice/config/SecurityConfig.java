@@ -1,27 +1,44 @@
 package com.thomasvitale.edgeservice.config;
 
 import com.thomasvitale.edgeservice.multitenancy.security.TenantAuthenticationEntryPoint;
-import com.thomasvitale.edgeservice.multitenancy.security.TenantClientRegistrationRepository;
 
+import io.arconia.multitenancy.web.context.filters.TenantContextFilter;
+
+import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.security.config.web.server.ServerHttpSecurity;
-import org.springframework.security.web.server.SecurityWebFilterChain;
+import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
+import org.springframework.security.oauth2.client.web.OAuth2AuthorizationRequestRedirectFilter;
+import org.springframework.security.web.SecurityFilterChain;
 
 @Configuration(proxyBeanMethods = false)
-public class SecurityConfig {
+class SecurityConfig {
 
 	@Bean
-	SecurityWebFilterChain springSecurityFilterChain(ServerHttpSecurity http, TenantClientRegistrationRepository clientRegistrationRepository) {
-		return http
-			.authorizeExchange(exchange -> exchange
-				.pathMatchers("/actuator/**", "/tenant-login/**").permitAll()
-				.anyExchange().authenticated())
-			.oauth2Login(oauth2 -> oauth2
-				.clientRegistrationRepository(clientRegistrationRepository))
-			.exceptionHandling(exception ->
-				exception.authenticationEntryPoint(new TenantAuthenticationEntryPoint()))
-			.build();
-	}
+	SecurityFilterChain securityFilterChain(
+            HttpSecurity http,
+            ClientRegistrationRepository clientRegistrationRepository,
+            TenantAuthenticationEntryPoint authenticationEntryPoint,
+            TenantContextFilter tenantContextFilter
+    ) {
+        return http
+                .authorizeHttpRequests(authorize -> authorize
+                        .requestMatchers("/actuator/**", "/tenant-login/**").permitAll()
+                        .anyRequest().authenticated())
+                .oauth2Login(oauth2 -> oauth2
+                        .clientRegistrationRepository(clientRegistrationRepository))
+                .exceptionHandling(exception ->
+                        exception.authenticationEntryPoint(authenticationEntryPoint))
+                .addFilterBefore(tenantContextFilter, OAuth2AuthorizationRequestRedirectFilter.class)
+                .build();
+    }
+
+    @Bean
+    FilterRegistrationBean<TenantContextFilter> tenantContextFilterRegistration(TenantContextFilter filter) {
+        var registration = new FilterRegistrationBean<>(filter);
+        registration.setEnabled(false);
+        return registration;
+    }
 
 }

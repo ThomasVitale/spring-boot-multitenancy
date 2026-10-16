@@ -6,44 +6,27 @@ spring:
     name: chat-service
   ai:
     ollama:
+      init:
+        pull-model-strategy: when-missing
       chat:
-        model: llama2
+        model: qwen3.5:4b
       embedding:
-        model: llama2
+        model: granite-embedding:278m
+    vectorstore:
+      pgvector:
+        dimensions: 768
+        index-type: hnsw
+        initialize-schema: true
   threads:
     virtual:
       enabled: true
 
-logging:
-  pattern:
-    correlation: '[%X{traceId:-}-%X{spanId:-}] [%X{tenantId:-}] '
-
 management:
-  endpoints:
-    web:
-      exposure:
-        include: "*"
   metrics:
-    tags:
-      application: ${spring.application.name}
     distribution:
       percentiles-histogram:
         all: true
         http.server.requests: true
-  opentelemetry:
-    resource-attributes:
-      application: ${spring.application.name}
-      "service.name": ${spring.application.name}
-  otlp:
-    tracing:
-      endpoint: http://localhost:4318/v1/traces
-  tracing:
-    sampling:
-      probability: 1.0
-  prometheus:
-    metrics:
-      export:
-        step: 5s
   endpoint:
     health:
       probes:
@@ -51,11 +34,11 @@ management:
       show-details: always
       show-components: always
 
-multitenancy:
-  tenants:
-    - identifier: dukes
-      enabled: true
-    - identifier: beans
-      enabled: true
-    - identifier: trixie
-      enabled: false
+arconia:
+  multitenancy:
+    details:
+      tenants:
+        - identifier: dukes
+        - identifier: beans
+        - identifier: trixie
+          enabled: false

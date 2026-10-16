@@ -6,15 +6,20 @@ import java.util.Map;
 
 import javax.sql.DataSource;
 
-import com.thomasvitale.instrumentservice.multitenancy.tenantdetails.TenantDetailsService;
+import io.arconia.multitenancy.core.tenantdetails.TenantDetailsService;
 
 import org.hibernate.cfg.AvailableSettings;
 import org.hibernate.engine.jdbc.connections.spi.MultiTenantConnectionProvider;
-import org.springframework.boot.autoconfigure.orm.jpa.HibernatePropertiesCustomizer;
+import org.springframework.boot.hibernate.autoconfigure.HibernatePropertiesCustomizer;
+import org.springframework.boot.sql.init.dependency.DependsOnDatabaseInitialization;
 import org.springframework.stereotype.Component;
+import org.springframework.util.Assert;
 
 @Component
+@DependsOnDatabaseInitialization
 public class ConnectionProvider implements MultiTenantConnectionProvider<String>, HibernatePropertiesCustomizer {
+
+	private static final String DEFAULT_SCHEMA = "default";
 
   	private final DataSource dataSource;
     private final TenantDetailsService tenantDetailsService;
@@ -26,7 +31,7 @@ public class ConnectionProvider implements MultiTenantConnectionProvider<String>
 
 	@Override
 	public Connection getAnyConnection() throws SQLException {
-		return getConnection("DEFAULT");
+		return getConnection(TenantIdentifierResolver.DEFAULT_TENANT);
 	}
 
 	@Override
@@ -36,19 +41,29 @@ public class ConnectionProvider implements MultiTenantConnectionProvider<String>
 
 	@Override
 	public Connection getConnection(String tenantIdentifier) throws SQLException {
-        var tenantDetails = tenantDetailsService.loadTenantByIdentifier(tenantIdentifier);
-        var schema = tenantDetails != null ? tenantDetails.schema() : tenantIdentifier;
-
 		Connection connection = dataSource.getConnection();
-		connection.setSchema(schema);
+		connection.setSchema(resolveSchema(tenantIdentifier));
 		return connection;
 	}
 
 	@Override
 	public void releaseConnection(String tenantIdentifier, Connection connection) throws SQLException {
-    	connection.setSchema("DEFAULT");
+    	connection.setSchema(DEFAULT_SCHEMA);
 		connection.close();
   	}
+
+	private String resolveSchema(String tenantIdentifier) {
+		if (TenantIdentifierResolver.DEFAULT_TENANT.equals(tenantIdentifier)) {
+			return DEFAULT_SCHEMA;
+		}
+
+		var tenantDetails = tenantDetailsService.loadTenantByIdentifier(tenantIdentifier);
+		Assert.notNull(tenantDetails, "tenantDetails cannot be null for tenant: " + tenantIdentifier);
+
+		String schema = tenantDetails.attribute("schema", String.class);
+		Assert.hasText(schema, "schema attribute cannot be null or empty for tenant: " + tenantIdentifier);
+		return schema;
+	}
 
 	@Override
 	public boolean supportsAggressiveRelease() {

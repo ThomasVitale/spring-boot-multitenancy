@@ -1,35 +1,49 @@
 # Spring Boot Multitenancy
 
-## Stack
+Example project demonstrating multitenancy with Spring Boot, Spring Security, Spring Cloud Gateway, Spring Data JPA, Arconia, OpenTelemetry, and Keycloak.
 
-* Java 21
-* Spring Boot 3.2
-* Grafana OSS
+## Pre-requisites
 
-## Usage
+* Java 25
+* Podman/Docker
 
-You can use Docker Compose to run the necessary backing services for observability, authentication, and AI.
+## Edge Service
 
-From the project root folder, run Docker Compose.
+Run the Edge Service application as follows:
 
-```bash
-docker-compose up -d
-```
-
-The Instrument Service application can be run as follows to rely on Testcontainers to spin up a PostgreSQL database:
-
-```bash
-./gradlew bootTestRun
-```
-
-The Edge Service application can be run as follows:
-
-```bash
+```shell
 ./gradlew bootRun
 ```
 
-The Chat Service application can be run using one of the two techniques described above. If you don't want to rely on Testcontainers,
-make sure you have [Ollama](https://ollama.ai/) installed and the Llama2 model available (`ollama run llama2`).
+Alternatively, you can use the [Arconia CLI](https://arconia.io/docs/arconia-cli/latest/):
+
+```shell
+arconia dev
+```
+
+Under the hood, the Arconia framework will automatically spin up a [Keycloak](https://docs.arconia.io/arconia/latest/dev-services/keycloak/) identity provider, a [Redis](https://docs.arconia.io/arconia/latest/dev-services/redis/) data store, and a [Grafana LGTM](https://docs.arconia.io/arconia/latest/dev-services/lgtm/) observability platform using Testcontainers (see [Arconia Dev Services](https://docs.arconia.io/arconia/latest/dev-services/) for more information).
+
+The application will be accessible at http://localhost:80.
+
+## Instrument Service
+
+Run the Instrument Service application as follows:
+
+```shell
+./gradlew bootRun
+```
+
+Alternatively, you can use the [Arconia CLI](https://arconia.io/docs/arconia-cli/latest/):
+
+```shell
+arconia dev
+```
+
+Under the hood, the Arconia framework will automatically spin up a [Keycloak](https://docs.arconia.io/arconia/latest/dev-services/keycloak/) identity provider, a [PostgreSQL](https://docs.arconia.io/arconia/latest/dev-services/postgresql/) database, and a [Grafana LGTM](https://docs.arconia.io/arconia/latest/dev-services/lgtm/) observability platform using Testcontainers (see [Arconia Dev Services](https://docs.arconia.io/arconia/latest/dev-services/) for more information).
+
+The application will be accessible at http://localhost:8181.
+
+## Usage
 
 Two tenants are configured: `dukes` and `beans`. Ensure you add the following configuration to your `hosts` file to resolve tenants from DNS names.
 

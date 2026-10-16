@@ -1,8 +1,8 @@
 plugins {
 	id 'java'
-	id 'org.springframework.boot' version '3.2.4'
-	id 'io.spring.dependency-management' version '1.1.4'
-	id 'org.cyclonedx.bom' version '1.8.2'
+	id 'org.springframework.boot' version '4.1.1'
+	id 'io.spring.dependency-management' version '1.1.7'
+	id 'org.cyclonedx.bom' version '3.5.1'
 }
 
 group = 'com.thomasvitale'
@@ -10,58 +10,56 @@ version = '0.0.1-SNAPSHOT'
 
 java {
     toolchain {
-        languageVersion = JavaLanguageVersion.of(21)
+        languageVersion = JavaLanguageVersion.of(25)
     }
-}
-
-configurations {
-	compileOnly {
-		extendsFrom annotationProcessor
-	}
 }
 
 repositories {
 	mavenCentral()
+    maven {
+        url = uri("https://central.sonatype.com/repository/maven-snapshots/")
+    }
 }
 
 ext {
-	set('springCloudVersion', "2023.0.1")
+	set('arconiaVersion', "0.32.0-SNAPSHOT")
+	set('springCloudVersion', "2025.1.3")
 }
 
 dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-actuator'
-	implementation 'org.springframework.boot:spring-boot-starter-oauth2-client'
-	implementation 'org.springframework.boot:spring-boot-starter-webflux'
-	implementation 'org.springframework.cloud:spring-cloud-starter-gateway'
-    implementation 'io.micrometer:micrometer-tracing-bridge-otel'
-    implementation 'io.opentelemetry:opentelemetry-exporter-otlp'
+	implementation 'org.springframework.boot:spring-boot-starter-security-oauth2-client'
+	implementation 'org.springframework.boot:spring-boot-starter-webmvc'
+	implementation 'org.springframework.cloud:spring-cloud-starter-gateway-server-webmvc'
 
-	runtimeOnly 'io.micrometer:micrometer-registry-prometheus'
-    runtimeOnly 'com.github.loki4j:loki-logback-appender:1.5.1'
+    implementation 'io.arconia:arconia-multitenancy-web-spring-boot-starter'
 
-	// Only on Apple Silicon. Why it's necessary: https://github.com/netty/netty/issues/11020
-	runtimeOnly 'io.netty:netty-resolver-dns-native-macos:4.1.105.Final:osx-aarch_64'
+    implementation 'io.arconia:arconia-opentelemetry-spring-boot-starter'
+    implementation 'io.arconia:arconia-opentelemetry-semantic-conventions'
 
-	annotationProcessor 'org.springframework.boot:spring-boot-configuration-processor'
+    developmentOnly 'org.springframework.boot:spring-boot-devtools'
+	testAndDevelopmentOnly 'io.arconia:arconia-dev-services-lgtm'
+	testAndDevelopmentOnly 'io.arconia:arconia-dev-services-keycloak'
+	testAndDevelopmentOnly 'io.arconia:arconia-dev-services-redis'
 
-    testAndDevelopmentOnly 'org.springframework.boot:spring-boot-devtools'
+    testImplementation "org.springframework.boot:spring-boot-starter-webmvc-test"
+    testImplementation "org.springframework.boot:spring-boot-starter-actuator-test"
+    testImplementation "org.springframework.boot:spring-boot-starter-security-oauth2-client-test"
 
-    testImplementation 'org.springframework.boot:spring-boot-starter-test'
-	testImplementation 'io.projectreactor:reactor-test'
+	testRuntimeOnly "org.junit.platform:junit-platform-launcher"
 }
 
 dependencyManagement {
 	imports {
+		mavenBom "io.arconia:arconia-bom:${arconiaVersion}"
 		mavenBom "org.springframework.cloud:spring-cloud-dependencies:${springCloudVersion}"
 	}
 }
 
-tasks.named('test') {
-	useJUnitPlatform()
+tasks.withType(JavaCompile).configureEach {
+    options.compilerArgs.add("-parameters")
 }
 
-tasks.named('cyclonedxBom') {
-    outputFormat = "json"
-    projectType = "application"
-    schemaVersion = "1.5"
+tasks.named('test') {
+	useJUnitPlatform()
 }

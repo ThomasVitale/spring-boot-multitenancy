@@ -1,8 +1,8 @@
 plugins {
     id 'java'
-    id 'org.springframework.boot' version '3.2.4'
-    id 'io.spring.dependency-management' version '1.1.4'
-    id 'org.cyclonedx.bom' version '1.8.2'
+    id 'org.springframework.boot' version '4.1.1'
+    id 'io.spring.dependency-management' version '1.1.7'
+    id 'org.cyclonedx.bom' version '3.5.1'
 }
 
 group = 'com.thomasvitale'
@@ -10,40 +10,53 @@ version = '0.0.1-SNAPSHOT'
 
 java {
     toolchain {
-        languageVersion = JavaLanguageVersion.of(21)
+        languageVersion = JavaLanguageVersion.of(25)
     }
 }
 
 repositories {
     mavenCentral()
-    maven { url 'https://repo.spring.io/milestone' }
+    maven {
+        url = uri("https://central.sonatype.com/repository/maven-snapshots/")
+    }
 }
 
 dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-actuator'
-    implementation 'org.springframework.boot:spring-boot-starter-web'
-    implementation 'io.micrometer:micrometer-tracing-bridge-otel'
-    implementation 'io.opentelemetry:opentelemetry-exporter-otlp'
+    implementation 'org.springframework.boot:spring-boot-starter-webmvc'
 
-    implementation 'org.springframework.ai:spring-ai-ollama-spring-boot-starter:0.8.1'
-    implementation 'org.springframework.ai:spring-ai-chroma-store-spring-boot-starter:0.8.1'
+	implementation 'org.springframework.ai:spring-ai-starter-model-ollama'
+	implementation 'org.springframework.ai:spring-ai-starter-vector-store-pgvector'
+	implementation 'org.springframework.ai:spring-ai-rag'
 
-    runtimeOnly 'io.micrometer:micrometer-registry-prometheus'
-    runtimeOnly 'com.github.loki4j:loki-logback-appender:1.5.1'
+    implementation 'io.arconia:arconia-multitenancy-web-spring-boot-starter'
 
-    testAndDevelopmentOnly 'org.springframework.boot:spring-boot-devtools'
+	implementation 'io.arconia:arconia-opentelemetry-spring-boot-starter'
+	implementation 'io.arconia:arconia-opentelemetry-semantic-conventions'
+	implementation 'net.ttddyy.observation:datasource-micrometer-spring-boot'
 
-    testImplementation 'org.springframework.boot:spring-boot-starter-test'
-    testImplementation 'org.springframework.boot:spring-boot-testcontainers'
-    testImplementation 'org.testcontainers:junit-jupiter'
+    developmentOnly 'org.springframework.boot:spring-boot-devtools'
+	testAndDevelopmentOnly 'io.arconia:arconia-dev-services-lgtm'
+	testAndDevelopmentOnly 'io.arconia:arconia-dev-services-ollama'
+	testAndDevelopmentOnly 'io.arconia:arconia-dev-services-postgresql'
+
+    testImplementation "org.springframework.boot:spring-boot-starter-actuator-test"
+    testImplementation "org.springframework.boot:spring-boot-starter-webmvc-test"
+    
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+}
+
+dependencyManagement {
+	imports {
+		mavenBom "io.arconia:arconia-bom:0.31.0"
+		mavenBom "org.springframework.ai:spring-ai-bom:2.0.1"
+	}
+}
+
+tasks.withType(JavaCompile).configureEach {
+    options.compilerArgs.add("-parameters")
 }
 
 tasks.named('test') {
-    useJUnitPlatform()
-}
-
-tasks.named('cyclonedxBom') {
-    outputFormat = "json"
-    projectType = "application"
-    schemaVersion = "1.5"
+	useJUnitPlatform()
 }

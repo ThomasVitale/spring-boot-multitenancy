@@ -2,14 +2,18 @@ package com.thomasvitale.instrumentservice.multitenancy.data.flyway;
 
 import javax.sql.DataSource;
 
-import com.thomasvitale.instrumentservice.multitenancy.tenantdetails.TenantDetailsService;
+import io.arconia.multitenancy.core.tenantdetails.TenantDetails;
+import io.arconia.multitenancy.core.tenantdetails.TenantDetailsService;
 
 import org.flywaydb.core.Flyway;
 import org.springframework.beans.factory.InitializingBean;
+import org.springframework.boot.sql.init.dependency.DependsOnDatabaseInitialization;
 import org.springframework.core.Ordered;
 import org.springframework.stereotype.Component;
+import org.springframework.util.Assert;
 
 @Component
+@DependsOnDatabaseInitialization
 public class TenantFlywayMigrationInitializer implements InitializingBean, Ordered {
 
     private static final String TENANT_MIGRATION_LOCATION = "db/migration/tenant";
@@ -26,10 +30,15 @@ public class TenantFlywayMigrationInitializer implements InitializingBean, Order
 
     @Override
     public void afterPropertiesSet() {
-        tenantDetailsService.loadAllTenants().forEach(tenant -> {
-            Flyway flyway = tenantFlyway(tenant.schema());
-            flyway.migrate();
-        });
+        tenantDetailsService.loadAllTenants().stream()
+                .filter(TenantDetails::enabled)
+                .forEach(tenantDetails -> {
+                    String schema = tenantDetails.attribute("schema", String.class);
+                    Assert.hasText(schema, "schema attribute cannot be null or empty for tenant: " + tenantDetails.identifier());
+
+                    Flyway flyway = tenantFlyway(schema);
+                    flyway.migrate();
+                });
     }
 
     private Flyway tenantFlyway(String schema) {

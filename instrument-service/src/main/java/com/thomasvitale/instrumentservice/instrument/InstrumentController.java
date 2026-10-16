@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("instruments")
-public class InstrumentController {
+class InstrumentController {
 
 	private static final Logger log = LoggerFactory.getLogger(InstrumentController.class);
 	private final InstrumentRepository instrumentRepository;

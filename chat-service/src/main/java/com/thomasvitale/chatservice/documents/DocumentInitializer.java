@@ -49,7 +49,7 @@ public class DocumentInitializer {
         documents.addAll(textReader2.get());
 
         log.info("Splitting text into chunks");
-        var tokenizedDocuments = new TokenTextSplitter().apply(documents);
+        var tokenizedDocuments = TokenTextSplitter.builder().build().apply(documents);
 
         log.info("Creating and storing Embeddings from Documents");
         vectorStore.add(tokenizedDocuments);

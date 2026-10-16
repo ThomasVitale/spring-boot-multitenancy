@@ -7,48 +7,28 @@ spring:
   
   cloud:
     gateway:
-      default-filters:
-        - SaveSession
-        - TokenRelay
-      routes:
-        - id: instrument-route
-          uri: http://localhost:8181
-          predicates:
-            - Host={tenant}.rock
-            - Path=/instruments/**
-          filters:
-            - AddRequestHeader=X-TenantId,{tenant}
+      server:
+        webmvc:
+          routes:
+            - id: instrument-route
+              uri: http://localhost:8181
+              predicates:
+                - Host=*.rock
+                - Path=/instruments/**
+              filters:
+                - TokenRelay=
+                - PropagateTenant=
 
-logging:
-  pattern:
-    correlation: '[%X{traceId:-}-%X{spanId:-}] [%X{tenantId:-}] '
+  threads:
+    virtual:
+      enabled: true
 
 management:
-  endpoints:
-    web:
-      exposure:
-        include: "*"
   metrics:
-    tags:
-      application: ${spring.application.name}
     distribution:
       percentiles-histogram:
         all: true
         http.server.requests: true
-  opentelemetry:
-    resource-attributes:
-      application: ${spring.application.name}
-      "service.name": ${spring.application.name}
-  otlp:
-    tracing:
-      endpoint: http://localhost:4318/v1/traces
-  tracing:
-    sampling:
-      probability: 1.0
-  prometheus:
-    metrics:
-      export:
-        step: 5s
   endpoint:
     health:
       probes:
@@ -56,20 +36,24 @@ management:
       show-details: always
       show-components: always
 
-multitenancy:
-  tenants:
-    - identifier: dukes
-      enabled: true
-      client-id: edge-service
-      client-secret: rocking-secret
-      issuer: http://localhost:8080/realms/dukes
-    - identifier: beans
-      enabled: true
-      client-id: edge-service
-      client-secret: rocking-secret
-      issuer: http://localhost:8080/realms/beans
-    - identifier: trixie
-      enabled: false
-      client-id: edge-service
-      client-secret: rocking-secret
-      issuer: http://localhost:8080/realms/trixie
+arconia:
+  multitenancy:
+    details:
+      tenants:
+        - identifier: dukes
+          attributes:
+            client-id: edge-service
+            client-secret: rocking-secret
+            issuer-uri: http://localhost:8080/realms/dukes
+        - identifier: beans
+          attributes:
+            client-id: edge-service
+            client-secret: rocking-secret
+            issuer-uri: http://localhost:8080/realms/beans
+        - identifier: trixie
+          enabled: false
+    resolution:
+      http:
+        resolution-mode: subdomain
+        subdomain:
+          pattern: "{tenant}.rock"

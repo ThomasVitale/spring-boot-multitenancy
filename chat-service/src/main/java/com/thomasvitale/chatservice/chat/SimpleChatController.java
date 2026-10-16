@@ -1,6 +1,6 @@
 package com.thomasvitale.chatservice.chat;
 
-import org.springframework.ai.chat.ChatClient;
+import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
@@ -16,7 +16,9 @@ public class SimpleChatController {
 
     @PostMapping("/ai/simple/chat")
     String chat(@RequestBody String message) {
-        return chatClient.call(message);
+        return chatClient.prompt(message)
+                .call()
+                .content();
     }
 
 }

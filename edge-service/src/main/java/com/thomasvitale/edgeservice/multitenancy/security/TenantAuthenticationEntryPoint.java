@@ -1,43 +1,34 @@
 package com.thomasvitale.edgeservice.multitenancy.security;
 
-import java.net.URI;
+import java.io.IOException;
+
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+
+import io.arconia.multitenancy.core.context.TenantContext;
 
 import org.springframework.security.core.AuthenticationException;
-import org.springframework.security.web.server.DefaultServerRedirectStrategy;
-import org.springframework.security.web.server.ServerAuthenticationEntryPoint;
-import org.springframework.security.web.server.ServerRedirectStrategy;
-import org.springframework.security.web.server.savedrequest.ServerRequestCache;
-import org.springframework.security.web.server.savedrequest.WebSessionServerRequestCache;
+import org.springframework.security.web.AuthenticationEntryPoint;
+import org.springframework.security.web.DefaultRedirectStrategy;
+import org.springframework.security.web.RedirectStrategy;
 import org.springframework.stereotype.Component;
-import org.springframework.util.Assert;
-import org.springframework.web.server.ServerWebExchange;
 
-import reactor.core.publisher.Mono;
-
+/**
+ * Redirects unauthenticated requests to the OAuth2 login flow
+ * of the tenant in the current context.
+ */
 @Component
-public class TenantAuthenticationEntryPoint implements ServerAuthenticationEntryPoint {
+public class TenantAuthenticationEntryPoint implements AuthenticationEntryPoint {
 
-    private ServerRedirectStrategy redirectStrategy = new DefaultServerRedirectStrategy();
+    private static final String BASE_LOGIN_URI = "/oauth2/authorization/";
 
-    private ServerRequestCache requestCache = new WebSessionServerRequestCache();
+    private final RedirectStrategy redirectStrategy = new DefaultRedirectStrategy();
 
     @Override
-    public Mono<Void> commence(ServerWebExchange exchange, AuthenticationException ex) {
-        var baseLoginUri = "/oauth2/authorization/";
-        var tenantId = exchange.getRequest().getURI().getHost().split("\\.")[0];
-        var tenantLoginLocation = URI.create(baseLoginUri + tenantId);
-        return this.requestCache.saveRequest(exchange)
-                .then(this.redirectStrategy.sendRedirect(exchange, tenantLoginLocation));
-    }
-
-    public void setRequestCache(ServerRequestCache requestCache) {
-        Assert.notNull(requestCache, "requestCache cannot be null");
-        this.requestCache = requestCache;
-    }
-
-    public void setRedirectStrategy(ServerRedirectStrategy redirectStrategy) {
-        Assert.notNull(redirectStrategy, "redirectStrategy cannot be null");
-        this.redirectStrategy = redirectStrategy;
+    public void commence(HttpServletRequest request, HttpServletResponse response, AuthenticationException ex) throws IOException {
+        var tenantId = TenantContext.getRequiredTenantIdentifier();
+        var tenantLoginLocation = BASE_LOGIN_URI + tenantId;
+        redirectStrategy.sendRedirect(request, response, tenantLoginLocation);
     }
 
 }

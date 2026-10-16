@@ -15,7 +15,7 @@ class DocumentChatController {
 
     @PostMapping("/ai/doc/chat")
     String chatWithDocument(@RequestBody String input) {
-        return documentChatService.chatWithDocument(input).getContent();
+        return documentChatService.chatWithDocument(input).getText();
     }
 
 }
