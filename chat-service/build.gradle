@@ -1,6 +1,6 @@
 plugins {
     id 'java'
-    id 'org.springframework.boot' version '4.1.1'
+    id 'org.springframework.boot' version '4.1.2'
     id 'io.spring.dependency-management' version '1.1.7'
     id 'org.cyclonedx.bom' version '3.5.1'
 }
@@ -33,7 +33,9 @@ dependencies {
 
 	implementation 'io.arconia:arconia-opentelemetry-spring-boot-starter'
 	implementation 'io.arconia:arconia-opentelemetry-semantic-conventions'
+    implementation 'io.arconia:arconia-opentelemetry-ai-semantic-conventions'
 	implementation 'net.ttddyy.observation:datasource-micrometer-spring-boot'
+    implementation 'net.ttddyy.observation:datasource-micrometer-opentelemetry'
 
     developmentOnly 'org.springframework.boot:spring-boot-devtools'
 	testAndDevelopmentOnly 'io.arconia:arconia-dev-services-lgtm'
@@ -48,8 +50,8 @@ dependencies {
 
 dependencyManagement {
 	imports {
-		mavenBom "io.arconia:arconia-bom:0.31.0"
-		mavenBom "org.springframework.ai:spring-ai-bom:2.0.1"
+		mavenBom "io.arconia:arconia-bom:0.32.0"
+		mavenBom "org.springframework.ai:spring-ai-bom:2.0.2"
 	}
 }
 
