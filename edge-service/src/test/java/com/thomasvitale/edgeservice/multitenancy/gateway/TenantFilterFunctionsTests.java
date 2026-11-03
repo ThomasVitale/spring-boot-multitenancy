@@ -4,7 +4,7 @@ import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 
 import io.arconia.multitenancy.core.context.TenantContext;
-import io.arconia.multitenancy.core.exceptions.TenantNotFoundException;
+import io.arconia.multitenancy.core.context.TenantNotFoundException;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.mock.web.MockHttpServletRequest;

@@ -2,7 +2,7 @@ package com.thomasvitale.edgeservice.config;
 
 import com.thomasvitale.edgeservice.multitenancy.security.TenantAuthenticationEntryPoint;
 
-import io.arconia.multitenancy.web.context.filters.TenantContextFilter;
+import io.arconia.multitenancy.web.context.TenantContextFilter;
 
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;

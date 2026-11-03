@@ -2,14 +2,15 @@ package com.thomasvitale.instrumentservice.config;
 
 import jakarta.servlet.http.HttpServletRequest;
 
-import io.arconia.multitenancy.web.context.filters.TenantContextFilter;
-
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManagerResolver;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.web.SecurityFilterChain;
+
+import io.arconia.multitenancy.web.context.TenantContextFilter;
+
 import org.springframework.security.oauth2.server.resource.web.authentication.BearerTokenAuthenticationFilter;
 
 @Configuration(proxyBeanMethods = false)

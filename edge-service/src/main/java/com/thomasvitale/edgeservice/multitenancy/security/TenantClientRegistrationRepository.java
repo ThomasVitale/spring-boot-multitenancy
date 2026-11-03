@@ -3,7 +3,7 @@ package com.thomasvitale.edgeservice.multitenancy.security;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-import io.arconia.multitenancy.core.exceptions.TenantVerificationException;
+import io.arconia.multitenancy.core.resolution.TenantVerificationException;
 import io.arconia.multitenancy.core.tenantdetails.TenantDetailsService;
 
 import org.springframework.security.oauth2.client.registration.ClientRegistration;
